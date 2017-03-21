@@ -1,0 +1,4 @@
+- Erzeugen und Beenden von Threads
+- Problematik DETACHED/JOINABLE
+- Übergabe von Parametern über “generische Pointer (void *)”
+- Umgang mit Returncodes bei Systemdiensten, die neue, „threadsafe“ Art
