@@ -1,4 +1,12 @@
 - Erzeugen und Beenden von Threads
 - Problematik DETACHED/JOINABLE
 - Übergabe von Parametern über “generische Pointer (void *)”
+	Void Pointer Parameter werden normalerweise bei generischen Funktionen verwendet.
+	"pthread_create" erwartet beispielweise eine Funktion die ein void Pointer entgegennimmt.
+	Dadurch ist es möglich, Threads mit allen möglichen Datentypen als Startparameter zu definieren.
+	Um mit dem generischen Pointer weiterarbeiten zu können, muss dieser wieder zurückgecasted werden
+	z.B.: "*((int*)arg)"
+
 - Umgang mit Returncodes bei Systemdiensten, die neue, „threadsafe“ Art
+	Um zu überprüfen ob Funktionen wie "pthread_create" oder "pthread_join" fehlerfrei ausgeführt wurden
+	muss man sich die Rückgabewerte ansehen. Die meisten Returncodes finden sich in "errno.h"
