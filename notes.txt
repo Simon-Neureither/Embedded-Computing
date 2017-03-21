@@ -1,4 +1,23 @@
 - Erzeugen und Beenden von Threads
 - Problematik DETACHED/JOINABLE
-- �bergabe von Parametern �ber �generische Pointer (void *)�
-- Umgang mit Returncodes bei Systemdiensten, die neue, �threadsafe� Art
+- Übergabe von Parametern über “generische Pointer (void *)”
+- Umgang mit Returncodes bei Systemdiensten, die neue, „threadsafe“ Art
+
+
+Zum Erzeugen von Threads mithilfe der POSIX API müssen zuerst die Thread Attribute
+initialisiert und die gebrauchten flags gesetzt werden. In diesem Fall wird zur
+default initialisierung nur der detachstate auf Joinable gestellt.
+Zum Erzeugen wird pthread_create aufgerufen, welches den neuen Thread erstellt und
+auch startet (sofern Rückgabe EOK).
+Das Beenden der Threads erfolgt explizit über pthread_exit, diese beendet den Thread und kehrt
+deshalb auch nicht zurück. Eventuell vorhandene clean-up handler werden dabei noch aufgerufen.
+Das pthread_exit kann aber auch implizit aufgerufen werden, indem ein Thread mit return beendet
+wird.
+
+Das Flag PTHREAD_CREATE_JOINABLE sorgt dafür, dass bestimmte Ressourcen, wie z. B. der Rückgabewert
+des Threads gespeichert werden und für die Funktion pthread_join noch zur Verfügung stehen.
+Im Gegensatz dazu sorgt PTHREAD_CREATE_DETACHED, dass ein Thread unabhängig ist und alle
+Ressourcen des Threads bei dessen Beendigung freigegeben werden. Deshalb kann auch nicht
+auf einen "detachden" Thread gewartet werden.
+
+
