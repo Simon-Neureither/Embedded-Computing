@@ -76,8 +76,7 @@ void measurement(void* arg)
 		fprintf(stderr, "error time: %s\n", strerror(ret));
 		exit(EXIT_FAILURE);
 	}
-	waste_msecs(50000);
-
+	waste_msecs(12340);
 	ret = clock_gettime(CLOCK_REALTIME, &endTime);
 	if (ret != EOK)
 	{
@@ -98,15 +97,10 @@ void measurement(void* arg)
 void waste_msecs(unsigned int msecs)
 {
 	unsigned int i = 0;
-	unsigned int max = msecs * 66430;
-	int a = 1;
-	int b = 1;
+	unsigned int max = msecs * 99843;
 	int tmp;
 	for (i = 0; i < max; i++)
 	{
-		tmp = b;
-		b = a + b;
-		a = tmp;
+		tmp+=1;
 	}
-
 }

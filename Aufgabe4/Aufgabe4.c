@@ -6,52 +6,47 @@
 
 #include <semaphore.h>
 
-
 #define BILLION 1000000000L
 
 void task1(void*);
 void task2(void*);
-void changeSystemTick(unsigned int nanos);
+void notBusyWait(int nanos);
+void waste_msecs(unsigned int msecs);
+
+sem_t semaphore;
 
 int main(int argc, char *argv[]) {
+
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	int ret;
 	pthread_t task1ID, task2ID;
 
-
-	changeSystemTick(4e6);
+	if (sem_init(&semaphore, 0, 0)) {
+		perror("semaphore");
+		return EXIT_FAILURE;
+	}
 
 	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 
-	pthread_attr_getschedparam(&attr, &param);
-	param.sched_priority = 5; // TODO 255.
-	ret = pthread_attr_setschedparam(&attr, &param);
-
-
-
 	ret = pthread_create(&task1ID, &attr, &task1, NULL);
-	if (ret != EOK)
-	{
+	if (ret != EOK) {
 		fprintf(stderr, "pthread_create: %s\n", strerror(ret));
 		return EXIT_FAILURE;
 	}
 	ret = pthread_create(&task2ID, &attr, &task2, NULL);
-	if (ret != EOK)
-	{
+	if (ret != EOK) {
 		fprintf(stderr, "pthread_create: %s\n", strerror(ret));
 		return EXIT_FAILURE;
 	}
 
 	ret = pthread_join(task1ID, NULL);
-	if (ret != EOK)
-	{
+	if (ret != EOK) {
 		fprintf(stderr, "pthread_join: %s\n", strerror(ret));
 		return EXIT_FAILURE;
 	}
 	ret = pthread_join(task2ID, NULL);
-	if (ret != EOK)
-	{
+	if (ret != EOK) {
 		fprintf(stderr, "pthread_join: %s\n", strerror(ret));
 		return EXIT_FAILURE;
 	}
@@ -59,84 +54,64 @@ int main(int argc, char *argv[]) {
 	return EXIT_SUCCESS;
 }
 
-
-void notBusyWait(int nanos)
-{
+void notBusyWait(int nanos) {
 	int ret;
 	struct timespec timeOld;
 
 	ret = clock_gettime(CLOCK_REALTIME, &timeOld);
-	if (ret != 0)
-	{
+	if (ret != 0) {
 		fprintf(stderr, "error time: %s\n", strerror(ret));
 		exit(EXIT_FAILURE);
 	}
 
-
-	timeOld.tv_nsec+= nanos;
-	if (timeOld.tv_nsec >= BILLION)
-	{
+	timeOld.tv_nsec += nanos;
+	if (timeOld.tv_nsec >= BILLION) {
 		timeOld.tv_sec++;
-		timeOld.tv_nsec=timeOld.tv_nsec - BILLION;
+		timeOld.tv_nsec = timeOld.tv_nsec - BILLION;
 	}
 	ret = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &timeOld, NULL);
-	if (ret != 0)
-	{
+	if (ret != 0) {
 		fprintf(stderr, "error: %s\n", strerror(ret));
 		exit(EXIT_FAILURE);
 	}
 }
+void waste_msecs(unsigned int msecs) {
+	unsigned int i = 0;
+	unsigned int max = msecs * 99843;
+	int tmp;
+	for (i = 0; i < max; i++) {
+		tmp += 1;
+	}
+}
 
-
-void task1(void* arg)
-{
+void task1(void* arg) {
 	int i = 0;
-	while (1)
-	{
-		notBusyWait(2e6);
 
+	while (1) {
+		notBusyWait(2e6);
+		waste_msecs(2);
 		i = (i + 1) % 3;
 
-		if (i == 1)
-		{
-			printf("semaphore\n");
+		if (i == 1) {
+			if (sem_post(&semaphore))
+			{
+				perror("sempahore post");
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
 }
 
-void task2(void* arg)
-{
+void task2(void* arg) {
 
-	while (1)
-	{
-		printf("wait semaphore\n");
-		noBusyWait(3e6);
+	while (1) {
+		if (sem_wait(&semaphore))
+		{
+			perror("semaphore wait");
+			exit(EXIT_FAILURE);
+		}
+		waste_msecs(3);
 	}
 
 }
 
-
-void changeSystemTick(unsigned int nanos)
-{
-	struct timespec res;
-	int ret = clock_getres(CLOCK_REALTIME, &res);
-
-	if (ret == -1)
-	{
-		perror("clock_getres");
-		exit(EXIT_FAILURE);
-	}
-
-	struct _clockperiod NewClockPeriod;
-
-	NewClockPeriod.nsec = nanos;
-	NewClockPeriod.fract = 0;
-
-	ret = ClockPeriod_r(CLOCK_REALTIME, &NewClockPeriod, NULL, 0);
-
-	if (ret != EOK)
-	{
-		fprintf(stderr, "error: %s\n", strerror(ret));
-		exit(EXIT_FAILURE);
-	}
-}
