@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 	pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 
 	pthread_attr_getschedparam(&attr, &param);
-	param.sched_priority = 255;
+	param.sched_priority = 10;
 	ret = pthread_attr_setschedparam(&attr, &param);
 
 	if (ret != EOK)
@@ -70,28 +70,34 @@ void measurement(void* arg)
 		exit(EXIT_FAILURE);
 	}
 
-	ret = clock_gettime(CLOCK_REALTIME, &startTime);
-	if (ret != EOK)
+	int i;
+
+	for (i = 0; i < 5; i++)
 	{
-		fprintf(stderr, "error time: %s\n", strerror(ret));
-		exit(EXIT_FAILURE);
+		ret = clock_gettime(CLOCK_REALTIME, &startTime);
+		if (ret != EOK)
+		{
+			fprintf(stderr, "error time: %s\n", strerror(ret));
+			exit(EXIT_FAILURE);
+		}
+		waste_msecs(3000);
+		ret = clock_gettime(CLOCK_REALTIME, &endTime);
+		if (ret != EOK)
+		{
+			fprintf(stderr, "error time: %s\n", strerror(ret));
+			exit(EXIT_FAILURE);
+		}
+		unsigned long BILLION = 1000000000L;
+		long seconds = endTime.tv_sec - startTime.tv_sec;
+		long nanos = endTime.tv_nsec - startTime.tv_nsec;
+		if (nanos < 0)
+		{
+			nanos+=BILLION;
+			seconds--;
+		}
+		printf("Verbrauchte Zeit s: %lu,%lu\r\n", seconds, nanos);
 	}
-	waste_msecs(12340);
-	ret = clock_gettime(CLOCK_REALTIME, &endTime);
-	if (ret != EOK)
-	{
-		fprintf(stderr, "error time: %s\n", strerror(ret));
-		exit(EXIT_FAILURE);
-	}
-	unsigned long BILLION = 1000000000L;
-	long seconds = endTime.tv_sec - startTime.tv_sec;
-	long nanos = endTime.tv_nsec - startTime.tv_nsec;
-	if (nanos < 0)
-	{
-		nanos+=BILLION;
-		seconds--;
-	}
-	printf("%lu:%lu\r\n", seconds, nanos);
+
 }
 
 void waste_msecs(unsigned int msecs)

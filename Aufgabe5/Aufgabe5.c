@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 		printf("LED 1 und LED 2:\n");
 		if (scanf("%d %d", &led1, &led2) != 2)
 		{
-			printf("Atompilz!\n");
+			printf("Falsche Eingabe.\n");
 			return EXIT_FAILURE;
 		}
 		if (led1 > 1 || led2 > 1)
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 		printf("Wollen sie aufhören?\n");
 		if (scanf("%d", &done) != 1)
 		{
-			printf("Atompilz #2!\n");
+			printf("Falsche Eingabe.\n");
 			return EXIT_FAILURE;
 		}
 	}
